@@ -1,0 +1,505 @@
+---
+title: "An588-Week-3-cmetcalf"
+author: "Cat Metcalf"
+date: "2023-09-18"
+output: html_document
+---
+# Module 6
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Challenge 1
+
+```{r}
+library(curl)
+```
+
+```{r}
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/Country-Data-2016.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(d)
+```
+This takes the data straight from Github instead of downloading a local version on to your computer!
+
+```{r}
+summary(d)
+```
+Gives a summary of the data frame.
+
+```{r}
+names(d)
+```
+Gives the names of values.
+
+What are the median area and population size of all countries in the dataset?
+```{r}
+summary(d)
+```
+This summary of all the data tells you the median area=69,700 and the median population size=4.912e+06 for all the countries since it gives a summary of the overall.
+
+Create a new pop_density variable in your data frame which is population / area. What are the 10 most dense countries? The 10 least dense?
+```{r}
+d$density <- d$population/d$area
+d <- d[order(-d$density), ]
+d[1:10, ]
+```
+```{r}
+d <- d[order(d$density), ]
+d[1:10, ]
+```
+
+Extract data from the 20 largest countries into a new variable. What are the median area and population size of these countries?
+```{r}
+ tail (d, 20)
+```
+This gives the largest countries (since they are at the end of the order), d designates it as the whol data frame where d$density would just list the densities of the largest countries.
+
+```{r}
+tail(d$density, 20)
+```
+
+```{r}
+x <- summary(tail(d, 20, na.rm = TRUE))
+x
+```
+This provides a summary of the data that provides the median area and population size specific to the 20 largest countries.
+
+Extract data from all countries beginning with the letters “A” through “F”. What are the mean area and population size of these countries?
+```{r}
+new <- d[grep("^[A-F]", d$country), ]
+summary(new)
+```
+Can also do:
+```{r}
+mean (new$population, na.rm = TRUE)
+mean (new$area, na.rm = TRUE)
+```
+
+## Challenge 2
+Barplots : The barplot() function is useful for crude data, with bar height proportional to the value of the variable. The function dotchart() provides a similar graphical summary.
+
+Make boxplots of the raw population and area data, then do the same after log() transforming these variables.
+
+NOTE: The par() command will let you set up a grid of panel in which to plot. Here, I set up a two row by three column grid.
+```{r}
+par(mfrow = c(2, 3))
+boxplot(d$population)
+boxplot(log(d$population))
+boxplot(d$area)
+boxplot(log(d$area))
+barplot(d$population)
+barplot(d$area)
+```
+Got : "Warning: NAs produced by integer overflow" as part of output?
+
+## Challenge 3
+**Histograms** : The hist() function returns a histogram showing the complete empirical distribution of the data in binned categories, which is useful for checking skewwness of the data, symmetry, multi-modality, etc. Setting the argument freq=FALSE will scale the Y axis to represent the proportion of observations falling into each bin rather than the count.
+Note: the first line of data in the following chunk gives two panels
+```{r}
+par(mfrow = c(1, 2))
+attach(d)
+hist(log(population), freq = FALSE, col = "red", main = "Plot 1", xlab = "log(population size)",
+    ylab = "density", ylim = c(0, 0.2))
+hist(log(area), freq = FALSE, col = "red", main = "Plot 2", xlab = "log(area)",
+    ylab = "density", ylim = c(0, 0.2))
+```
+NOTE: You can add a line to your histograms (e.g., to show the mean value for a variable) using the abline() command, with arguments. For exmaple, to show a single vertical line representing the mean log(population size), you would add the argument v=mean(log(population)))
+
+**Density plot** : The density() function computes a non-parametric estimate of the distribution of a variable, which can be combined with plot() to also yield a graphical view of the distribution of the data. If your data have missing values, then you need to add the argument na.rm=TRUE to the density() function. To superimpose a density() curve on a histogram, you can use the lines(density()) function.
+```{r}
+par(mfrow = c(1, 1))  # set up one panel and redraw the log(population) histogram
+hist(log(population), freq = FALSE, col = "white", main = "My Plot with Mean and Density",
+    xlab = "log(population size)", ylab = "density", ylim = c(0, 0.2))
+abline(v = mean(log(population), na.rm = TRUE), col = "blue")
+lines(density(log(population), na.rm = TRUE), col = "green")
+```
+```{r}
+detach (d)
+```
+
+What does above chunk do?
+
+## Challenge 4
+Using the table() function, find what is the most common form of government in the Country-Data-2016 dataset. How many countries have that form? Combine two functions to solve!
+```{r}
+sort(table(d$govt_form), decreasing = TRUE)
+```
+
+## Challenge 5
+Multiple boxplots or histograms can be laid out side-by-side or overlaid. For boxplots, the ~ operator can be read as “by”.
+```{r}
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/KamilarAndCooperData.csv")
+d <- read.csv(f, header = TRUE, stringsAsFactors = FALSE)
+attach(d)
+head(d)
+```
+```{r}
+summary(d)
+```
+Plotting with base graphics:
+```{r}
+boxplot(log(Body_mass_female_mean) ~ Family, d)
+```
+```{r}
+detach(d)
+```
+
+Alternatively, plotting using {ggplot2}… notice how each novel command is being added to the already-saved initial command? This is for ease of reading and understanding how we’re building the figure. All of this could also go on one line (and is read by the computer as such in the final version of the object p), but to make it easier to understand what each component it doing, we often build graphs in {ggplot2} using the below method:
+```{r}
+library(ggplot2)
+p <- ggplot(data = d, aes(x = Family, y = log(Body_mass_female_mean)))  #define the variables
+p <- p + geom_boxplot()  #graph them in a boxplot
+p <- p + theme(axis.text.x = element_text(angle = 90))  #put x-axis names at 90deg
+p <- p + ylab("log(Female Body Mass)")  #rename y-axis title
+p  #show me the graph
+```
+Got in output: "Warning: [38;5;232mRemoved 18 rows containing non-finite values (`stat_boxplot()`).[39m"
+
+## Challenge 6
+Scatterplots : Scatterplots are a natural tool for visualizing two continuous variables and can be made easily with the plot(x=XXX, y=YYY) function in {base} graphics (where XXX* and YYY** denote the names of the two variables you wish to plot). Transformations of the variables, e.g., log or square-root (sqrt()), may be necessary for effective visualization.
+
+Plot relationship between female body size and female brain size: 
+```{r}
+attach(d)
+par(mfrow = c(1, 2))
+plot(x = Body_mass_female_mean, y = Brain_Size_Female_Mean)
+plot(x = log(Body_mass_female_mean), y = log(Brain_Size_Female_Mean))
+```
+```{r}
+detach(d)
+```
+
+What is the purpose of the attach and detach commands? -> ask in class!
+
+In ggplot:
+```{r}
+p <- ggplot(data = d, aes(x = log(Body_mass_female_mean), y = log(Brain_Size_Female_Mean),
+    color = factor(Family)))  # first, we build a plot object and color points by Family
+p <- p + xlab("log(Female Body Mass)") + ylab("log(Female Brain Size)")  # then we modify the axis labels
+p <- p + geom_point()  # then we make a scatterplot
+p <- p + theme(legend.position = "bottom", legend.title = element_blank())  # then we modify the legend
+p  # and, finally, we plot the object
+```
+Got in output: "Warning	
+Warning: [38;5;232mRemoved 48 rows containing missing values (`geom_point()`).[39m"
+*Much prettier graph but so complicated a code*
+continued:
+```{r}
+p <- p + facet_wrap(~Family, ncol = 4)
+p <- p + theme(legend.position = "none")
+p
+```
+Now add a linear model to each facet:
+```{r}
+p <- p + geom_smooth(method = "lm", fullrange = TRUE)
+p
+```
+
+## Challenge 7
+Building a bivariate scatterplot:
+```{r}
+p <- ggplot(data = d, aes(x = log(Body_mass_female_mean), y = log(MaxLongevity_m)))
+p <- p + geom_point()
+p <- p + geom_smooth(method = "lm")
+p
+```
+
+To calculate summary statistics for groups of observations in a data frame, there are many different approaches. One is to use the aggregate() function from the {stats} package (a standard package), which provides a quick way to look at summary statistics for sets of observations, though it requires a bit of clunky code. Here, we apply a particular function (FUN = "mean") to mean female body mass, grouped by Family.
+```{r}
+aggregate(d$Body_mass_female_mean ~ d$Family, FUN = "mean", na.rm = TRUE)
+```
+Or you can do:
+```{r}
+aggregate(x = d["Body_mass_female_mean"], by = d["Family"], FUN = "mean", na.rm = TRUE)
+```
+Using dplyr:
+```{r}
+library(dplyr)
+```
+```{r}
+s <- filter(d, Family == "Hominidae" & Mass_Dimorphism > 2)
+head(s)  # filtering a data frame for certain rows...
+```
+**Arranging**
+```{r}
+s <- arrange(d, Family, Genus, Body_mass_male_mean)  # rearranging a data frame...
+head(s)
+```
+**Selecting**
+```{r}
+s <- select(d, Family, Genus, Body_mass_male_mean)  # selecting specific columns...
+head(s)
+```
+**Renaming**
+```{r}
+s <- rename(d, Female_Mass = Body_mass_female_mean)
+head(s$Female_Mass)  # renaming columns...
+```
+**Mutating/Adding Columns**
+```{r}
+s <- mutate(d, Binomial = paste(Genus, Species, sep = " "))
+head(s$Binomial)  # and adding new columns...
+```
+
+**Quicker Summarizing**
+```{r}
+s <- summarise(d, avgF = mean(Body_mass_female_mean, na.rm = TRUE), avgM = mean(Body_mass_male_mean,
+    na.rm = TRUE))
+s
+```
+Grouping to apply summary functions to sets of observations:
+```{r}
+byFamily <- group_by(d, Family)
+byFamily
+```
+
+### Piping
+One other cool thing about the {dplyr} package is that it provides a convenient way to “pipe” together operations on a data frame using the %>% operator. This means that each line of code after the operator is implemented on the product of the line of code before the operator.In this way, you can use piping to build, step by step, a more complicated output.
+
+Ex.
+```{r}
+s <-                                                             #to create dataframe "s"
+  d %>%                                                          #take dataframe "d"
+  group_by(Family) %>%                                           #Group it by Family
+  summarise(avgF = mean(Body_mass_female_mean, na.rm=TRUE),      #And calculate mean male BM
+            avgM = mean(Body_mass_male_mean, na.rm=TRUE))        #And mean female BM
+s
+```
+Piping allows us to keep a clean and readable workflow without having to create numerous intermediate dataframes, as well as offering us a shorthand that accomplishes one complicated process with one simple-to-breakdown command.
+
+## Challenge 8
+In one line of code, do the following:
+
+Add a variable, Binomial to our data frame d, which is a concatenation of the Genus and Species…
+Trim the data frame to only include the variables Binomial, Family, Body_mass_female_mean, Body_mass_male_mean and Mass_Dimorphism…
+Group these by Binomial (in other words, by species but with full binomial nomenclature)…
+And calculate the average value for female body mass, male body mass, and mass dimorphism.
+```{r}
+s <- d %>%
+    mutate(Binomial = paste(Genus, Species, sep = " ")) %>%
+    select(Binomial, Family, Body_mass_female_mean, Body_mass_male_mean, Mass_Dimorphism) %>% #did not include family in the original code from the website so fixed this
+    group_by(Binomial) %>%
+    summarise(avgF = mean(Body_mass_female_mean, na.rm = TRUE), avgM = mean(Body_mass_male_mean,
+        na.rm = TRUE), avgBMD = mean(Mass_Dimorphism, na.rm = TRUE))
+s
+```
+
+Acccording to Kamilar & Cooper’s (2013) dataset, what is the average male and female size, and body mass dimorphism of my two main study species (vervet monkeys, Chlorocebus pygerythrus; and woolly monkeys, Lagothrix lagotricha)? Which has a larger average female body mass? Which is more sexually dimorphic?
+vervet monkeys:
+Chlorocebus pygerythrus: avgM 5071.2, avgF 3575.8, BMD 1.418
+woolly monkeys: 
+Lagothrix lagotricha:avgM 7280, avgF 7020, BMD 1.037
+Woolly monkey females have larger body mass and vervet monkeys are more sexually dimorphic.
+
+Compare the body size of my two main study taxa at the Family level (i.e., Cercopithecidae vs. Atelidae) by plotting (using {ggplot2}) the body mass of males and females and sexual dimorphism. If you can, make the Cercopithecid boxes green, and the Atelid boxes purple.
+```{r}
+p <- ggplot(data = d, aes(x = log(Body_mass_female), y = log(Body_mass_male), z = log(Mass_Dimorphism)),
++     color = factor(Family)))  # first, we build a plot object and color points by Family
+> p <- p + xlab("log(Female Body Mass)") + ylab("log(Male Body Mass)") + zlab("log(Sexual Dimorphism)"))  # then we modify the axis labels
+> p <- p + geom_point()  # then we make a scatterplot
+> p <- p + theme(legend.position = "bottom", legend.title = element_blank())  # then we modify the legend
+> p  # and, finally, we plot the object
+```
+*error in above chunk*
+***
+
+# Module 7
+
+**Terms:**
+**Population** = includes all of the elements from a set of data (e.g., all of the vervet monkeys in the world) = N
+**Sample** = one or more observations from a population (e.g., the set of vervets trapped during a field season in South Africa, the set of vervet skeletons found in a museum) = n
+**Parameter** = a measurable characteristic of a population (e.g., the mean value of the femur length of all vervets)
+**Statistic** = a measurable characteristic about a sample, described by a function applied to the sample (e.g., the mean length of vervet monkey femora found at the American Museum of Natural History).
+
+## Challenge 1
+Remember the general form for functions is:
+
+function name <- function(arguments to pass){code to run}
+
+```{r}
+x <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 50, 100, 200, 1000)
+gm1 <- function(x) {
+    prod(x)^(1/length(x))
+}
+gm1(x)
+```
+
+```{r}
+gm2 <- function(x) {
+    exp(mean(log(x)))
+}
+gm2(x)
+```
+If includes NA values, use na.rm= TRUE or function na.omit()
+
+## Challenge 2
+Calculate sum of squares for a vector
+```{r}
+ss1 <- function(x) {
+    sum((x - mean(x))^2)
+}
+ss1(x)
+```
+
+Can also use: (equals the same)
+```{r}
+ss2 <- function(x) {
+    sum(x^2) - length(x) * mean(x)^2
+}
+ss2(x)
+```
+
+*Sum of squares increases with sample size
+
+Population Variance:
+```{r}
+pop_v <- function(x) {
+    sum((x - mean(x))^2)/(length(x))
+}
+pop_v(x)
+```
+*use only when you have measured all individual cases in population, if not, have to use sample variance
+**sample variance** = estimator of the population variance = sum of squares / (n - 1)
+
+## Challenge 3
+
+```{r}
+sample_v <- function(x) {
+    sum((x - mean(x))^2)/(length(x) - 1)
+}
+sample_v(x)
+```
+Sample variance is slightly higher an output and would likely decrease or become more concentrated with increasing sample size.
+
+How is variance related to sample size?
+```{r}
+plot(c(0, 50), c(0, 15), type = "n", xlab = "Sample size", ylab = "Variance")
+for (n in seq(5, 50, 5)) # samples of 5, 10, 15... for (n in seq(5, 50,
+for (n in seq(5, 50, 5)) # samples of 5, 10, 15... 5)) # samples of 5, 10,
+for (n in seq(5, 50, 5)) # samples of 5, 10, 15... 15...
+{
+    for (i in 1:50) # 50 replicates for (i in 1:50) # 50 replicates
+    {
+        x <- rnorm(n, mean = 10, sd = 2)
+        points(n, var(x))
+    }
+}
+```
+*can not separate "for" portion or else will not plot correctly since not assigning a graph to plot points to
+
+**Standard Deviation**:
+```{r}
+pop_sd <- function(x) {
+    sqrt(pop_v(x))
+}
+pop_sd(x)
+```
+*does not match output from MODULE!
+```{r}
+sample_sd <- function(x) {
+    sqrt(sample_v(x))
+}
+sample_sd(x)
+```
+
+## Challenge 4
+Standard error of the mean:
+```{r}
+SE1 <- function(x) {
+    sqrt(sample_v(x)/length(x))
+} #sample_v can also be var
+SE1(x)
+```
+
+Normal Distribution:
+```{r}
+set.seed(1)
+x <- rnorm(10000, 0, 1)
+hist(x)
+```
+Density distribution:
+```{r}
+x <- seq(from = -4, to = 4, by = 0.01)
+plot(x, dnorm(x), cex = 0.4) #cex sets size of points being plotted
+```
+Probability distribution:
+```{r}
+plot(x, pnorm(x), cex = 0.4)
+```
+
+```{r}
+x <- seq(from = 0, to = 1, by = 0.01)
+plot(qnorm(x), x, cex = 0.4)
+```
+
+```{r}
+x1 <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+m <- mean(x)
+n2 <- length(x)
+v <- var(x)
+s <- sd(x)
+e <- sqrt(v/n)
+upper <- mean(x) + qnorm(0.975, mean = 0, sd = 1) * se(x)
+lower <- mean(x) + qnorm(0.025, mean = 0, sd = 1) * se(x)  # or lower <- mean(x) - qnorm(0.975)*se(x)
+ci <- c(lower, upper)
+ci
+```
+*error given, cant find function -> have to install {sciplot} package? Did not fix it, still can not find function -> type it with library() -> did not give correct outputs
+```{r}
+upper <- m + qnorm(0.975, mean = 0, sd = 1) * e
+lower <- m + qnorm(0.025, mean = 0, sd = 1) * e  # or lower <- m - qnorm(0.975)*e
+ci <- c(lower, upper)
+ci
+```
+
+Defining own generic CI function based on normal distribution:
+```{r}
+normalCI = function(x, CIlevel = 0.95) {
+    upper = m + qnorm(1 - (1 - CIlevel)/2) * sqrt(var(x)/length(x))
+    lower = m + qnorm((1 - CIlevel)/2) * sqrt(var(x)/length(x))
+    ci <- c(lower, upper)
+    return(ci)
+}
+normalCI(x, 0.95)  # call the function
+```
+Why is this not giving the right values?
+
+* 0.95 shows the confidence interval
+
+Calculating CI by Bootstrapping:
+
+```{r}
+set <- NULL  # sets up a dummy variable to hold our 10000 simulations
+n <- 15
+for (i in 1:10000) {
+    set[i] <- mean(sample(x, n, replace = TRUE))
+}
+```
+
+```{r}
+quantile(set)
+```
+
+```{r}
+quantile(set, c(0.025, 0.975))
+```
+
+## Challenge 5
+
+How does the CI calculated this way, by simulation, compare to that calculated based on assuming a normal distribution?
+This way gives a much larger range of numbers.
+
+How does the width of the CI change with decreasing or increasing n (the number of observations drawn from your sample with replacement)? For example, if we set n at 5? At 50? At 500?
+```{r}
+set <- NULL  # sets up a dummy variable to hold our 10000 simulations
+n <- 50
+for (i in 1:10000) {
+    set[i] <- mean(sample(x, n, replace = TRUE))
+}
+```
+```{r}
+quantile(set, c(0.025, 0.975))
+```
+
+*Modules for Week 3 Complete*

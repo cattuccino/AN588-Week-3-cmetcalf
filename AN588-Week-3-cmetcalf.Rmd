@@ -36,7 +36,21 @@ What are the median area and population size of all countries in the dataset?
 ```{r}
 summary(d)
 ```
-This summary of all the data tells you the median area=69,700 and the median population size=4.912e+06 for all the countries since it gives a summary of the overall.
+This summary of all the data tells you the median area=69,700 and the median population size=4.912e+06 for all the countries since it gives a summary of the overall. *not actually right, bc just doing length of the column
+
+***
+In class example:
+attach(d, pos=3, name = "area")
+median (area, na.rm TRUE)
+
+Reese soln:
+v <- d[['population']]
+v
+
+median(v, na.rm = TRUE)
+gives: 4911766
+***
+can also do: summary (d$area)
 
 Create a new pop_density variable in your data frame which is population / area. What are the 10 most dense countries? The 10 least dense?
 ```{r}
@@ -49,11 +63,18 @@ d <- d[order(d$density), ]
 d[1:10, ]
 ```
 
-Extract data from the 20 largest countries into a new variable. What are the median area and population size of these countries?
+Extract data from the 20 largest countries into a new variable. What are the median area and population size of these countries? (**wanted area**)
 ```{r}
  tail (d, 20)
 ```
-This gives the largest countries (since they are at the end of the order), d designates it as the whol data frame where d$density would just list the densities of the largest countries.
+This gives the largest countries (since they are at the end of the order), d designates it as the whole data frame where d$density would just list the densities of the largest countries.
+***
+In class example:
+d <- d[order(-d$area)]
+summary(size)
+
+**best**
+***
 
 ```{r}
 tail(d$density, 20)
@@ -67,7 +88,7 @@ This provides a summary of the data that provides the median area and population
 
 Extract data from all countries beginning with the letters “A” through “F”. What are the mean area and population size of these countries?
 ```{r}
-new <- d[grep("^[A-F]", d$country), ]
+new <- d[grep("^[A-F]", d$country), ] #tokens that represent combinations of numbers; pulls out of dataset with specifics, ^ indicates "starts with"
 summary(new)
 ```
 Can also do:
@@ -83,7 +104,7 @@ Make boxplots of the raw population and area data, then do the same after log() 
 
 NOTE: The par() command will let you set up a grid of panel in which to plot. Here, I set up a two row by three column grid.
 ```{r}
-par(mfrow = c(2, 3))
+par(mfrow = c(2, 3)) #argues that you can put graphs in one space near each other (reference output image)
 boxplot(d$population)
 boxplot(log(d$population))
 boxplot(d$area)
@@ -127,30 +148,31 @@ sort(table(d$govt_form), decreasing = TRUE)
 ```
 
 ## Challenge 5
-Multiple boxplots or histograms can be laid out side-by-side or overlaid. For boxplots, the ~ operator can be read as “by”.
+Multiple boxplots or histograms can be laid out side-by-side or overlaid. For boxplots, the ~ operator can be read as “by”. Ex. "lactation BY season"
 ```{r}
 f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/KamilarAndCooperData.csv")
 d <- read.csv(f, header = TRUE, stringsAsFactors = FALSE)
-attach(d)
+attach(d) #attaches data to "stick around"
 head(d)
 ```
+When using own data for R, want data strings with no spaces but _ for naming variables and columns
 ```{r}
 summary(d)
 ```
 Plotting with base graphics:
 ```{r}
-boxplot(log(Body_mass_female_mean) ~ Family, d)
+boxplot(log(Body_mass_female_mean) ~ Family, d) #again BY family
 ```
 ```{r}
-detach(d)
+detach(d) #removes from perma environment
 ```
 
 Alternatively, plotting using {ggplot2}… notice how each novel command is being added to the already-saved initial command? This is for ease of reading and understanding how we’re building the figure. All of this could also go on one line (and is read by the computer as such in the final version of the object p), but to make it easier to understand what each component it doing, we often build graphs in {ggplot2} using the below method:
 ```{r}
 library(ggplot2)
 p <- ggplot(data = d, aes(x = Family, y = log(Body_mass_female_mean)))  #define the variables
-p <- p + geom_boxplot()  #graph them in a boxplot
-p <- p + theme(axis.text.x = element_text(angle = 90))  #put x-axis names at 90deg
+p <- p + geom_boxplot()  #graph them in a boxplot, can also make modifications inside the boxplot; redefining by adding on using "p +"
+p <- p + theme(axis.text.x = element_text(angle = 90))  #put x-axis names at 90deg to fit family names
 p <- p + ylab("log(Female Body Mass)")  #rename y-axis title
 p  #show me the graph
 ```
@@ -186,13 +208,13 @@ Warning: [38;5;232mRemoved 48 rows containing missing values (`geom_point()`).[3
 *Much prettier graph but so complicated a code*
 continued:
 ```{r}
-p <- p + facet_wrap(~Family, ncol = 4)
+p <- p + facet_wrap(~Family, ncol = 4) #allows you to see them separately, can see variation within family
 p <- p + theme(legend.position = "none")
 p
 ```
 Now add a linear model to each facet:
 ```{r}
-p <- p + geom_smooth(method = "lm", fullrange = TRUE)
+p <- p + geom_smooth(method = "lm", fullrange = TRUE) #full range makes it go across whole graph
 p
 ```
 
@@ -291,17 +313,32 @@ Chlorocebus pygerythrus: avgM 5071.2, avgF 3575.8, BMD 1.418
 woolly monkeys: 
 Lagothrix lagotricha:avgM 7280, avgF 7020, BMD 1.037
 Woolly monkey females have larger body mass and vervet monkeys are more sexually dimorphic.
+***
+can also do: s[70:72,]; or view Jimmy's code
+***
 
 Compare the body size of my two main study taxa at the Family level (i.e., Cercopithecidae vs. Atelidae) by plotting (using {ggplot2}) the body mass of males and females and sexual dimorphism. If you can, make the Cercopithecid boxes green, and the Atelid boxes purple.
+Jimmy's solution:
 ```{r}
-p <- ggplot(data = d, aes(x = log(Body_mass_female), y = log(Body_mass_male), z = log(Mass_Dimorphism)),
-+     color = factor(Family)))  # first, we build a plot object and color points by Family
-> p <- p + xlab("log(Female Body Mass)") + ylab("log(Male Body Mass)") + zlab("log(Sexual Dimorphism)"))  # then we modify the axis labels
-> p <- p + geom_point()  # then we make a scatterplot
-> p <- p + theme(legend.position = "bottom", legend.title = element_blank())  # then we modify the legend
-> p  # and, finally, we plot the object
+d %>% filter(Family == "Cercopithecidae" | Family == "Atelidae") %>% 
+  ggplot(aes(x = Body_mass_male_mean, fill = Family)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("purple", "green")) +
+  ggtitle("Boxplot of average male mass by Family") + theme_bw()
+
+d %>% filter(Family == "Cercopithecidae" | Family == "Atelidae") %>% 
+  ggplot(aes(x = Body_mass_female_mean, fill = Family)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("purple", "green")) +
+  ggtitle("Boxplot of average female mass by Family") + theme_bw()
+
+d %>% filter(Family == "Cercopithecidae" | Family == "Atelidae") %>% 
+  ggplot(aes(x = Mass_Dimorphism, fill = Family)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("purple", "green")) +
+  ggtitle("Boxplot of average sexual dimorphism by Family") + theme_bw()
 ```
-*error in above chunk*
+
 ***
 
 # Module 7
@@ -337,7 +374,7 @@ If includes NA values, use na.rm= TRUE or function na.omit()
 Calculate sum of squares for a vector
 ```{r}
 ss1 <- function(x) {
-    sum((x - mean(x))^2)
+    sum((x - mean(x))^2) #squaring allows to not cancel out all values (removes negatives)
 }
 ss1(x)
 ```
@@ -379,7 +416,7 @@ for (n in seq(5, 50, 5)) # samples of 5, 10, 15... for (n in seq(5, 50,
 for (n in seq(5, 50, 5)) # samples of 5, 10, 15... 5)) # samples of 5, 10,
 for (n in seq(5, 50, 5)) # samples of 5, 10, 15... 15...
 {
-    for (i in 1:50) # 50 replicates for (i in 1:50) # 50 replicates
+    for (i in 1:50) # 50 replicates for (i in 1:50) # 50 replicates, chooses random number in between
     {
         x <- rnorm(n, mean = 10, sd = 2)
         points(n, var(x))

@@ -432,7 +432,7 @@ pop_sd <- function(x) {
 }
 pop_sd(x)
 ```
-*does not match output from MODULE!
+*does not match output from MODULE! -> bc of pickimg randomness in previous
 ```{r}
 sample_sd <- function(x) {
     sqrt(sample_v(x))
@@ -451,7 +451,7 @@ SE1(x)
 
 Normal Distribution:
 ```{r}
-set.seed(1)
+set.seed(1) #simulated dataset
 x <- rnorm(10000, 0, 1)
 hist(x)
 ```
@@ -482,7 +482,7 @@ lower <- mean(x) + qnorm(0.025, mean = 0, sd = 1) * se(x)  # or lower <- mean(x)
 ci <- c(lower, upper)
 ci
 ```
-*error given, cant find function -> have to install {sciplot} package? Did not fix it, still can not find function -> type it with library() -> did not give correct outputs
+*error given, cant find function -> have to install {sciplot} package? Did not fix it, still can not find function -> type it with library() -> did not give correct outputs -> because random variable
 ```{r}
 upper <- m + qnorm(0.975, mean = 0, sd = 1) * e
 lower <- m + qnorm(0.025, mean = 0, sd = 1) * e  # or lower <- m - qnorm(0.975)*e

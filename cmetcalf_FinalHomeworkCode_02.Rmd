@@ -60,7 +60,7 @@ m
 z <-hist(m, breaks = seq (1:30), probability = TRUE) 
 z
 ```
-*xlim was not being viewed as a valid function*
+*xlim was not being viewed as a valid function.*
 The probability mass function is symmetrical and evenly distributed, where the histogram of the simulations seems to veer more towards the mean and with highest probabilities between 15 and 20. It is also skewed with more values slightly below the mean.
 
 ## Five Challenges Faced

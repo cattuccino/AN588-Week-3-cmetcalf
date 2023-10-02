@@ -1,0 +1,72 @@
+---
+title: "cmetcalf_OriginalHomeworkCode_02"
+author: "Cat Metcalf"
+date: "2023-09-25"
+output: 
+ prettydoc::html_pretty:
+   toc: true
+   theme: cayman
+   
+---
+
+```{r, echo=FALSE}
+knitr::include_graphics("Titimonkey.jpeg")
+```
+
+
+# Titis in the Mist
+
+Every Saturday morning, at the same time, a primatologist goes and sits in the forest to listen for titi monkey calls, counting the number of calls they hear in a 2 hour window from 5am to 7am. Based on previous knowledge, she believes that the mean number of calls she will hear in that time is exactly 15. Let X represent the appropriate Poisson random variable of the number of calls heard in each monitoring session.
+
+## What is the probability that she will hear more than 8 calls during any given session?
+
+```{r, probability greater than 8}
+ppois(8, lambda=15, lower.tail = FALSE) #calculates probability of getting value greater than 8 within time interval, ppois gives this range and the FALSE setting for lower tail means it disregards the lower end of the interval
+```
+
+
+## What is the probability that she will hear no calls in a session?
+
+```{r, equal to zero occurrences}
+x <-dpois(0, lambda=15) #0 indicates there are no calls in the time interval
+x
+```
+
+## What is the probability that she will hear exactly 3 calls in a session?
+
+```{r, event occurring with exact number}
+dpois(3, lambda = 15) #dpois gives an exact probability that event OCCURS once
+```
+
+## Plot the relevant Poisson mass function over the values in range 0 ≤ x ≤ 30.
+
+```{r, poisson mass function}
+x2 <- 0:30
+l = 15
+probset <- dpois(x = x2, lambda = l)
+barplot(probset, names.arg = x2, space = 0, xlab = "Calls", ylab = "Probability of Occurrence", main = "Number of Calls in Time Interval")
+```
+
+## Simulate 104 results from this distribution (i.e., 2 years of Saturday monitoring sessions).
+
+```{r, simulating results}
+m <- rpois(104, lambda = 15) #rpois gives random results for that function
+m
+```
+
+## Plot the simulated results using hist() and use xlim() to set the horizontal limits to be from 0 to 30. How does your histogram compare to the shape of the probability mass function you plotted above?
+
+```{r, plotting simulated results}
+z <-hist(m, breaks = seq (1:30), probability = TRUE) 
+z
+```
+*xlim was not being viewed as a valid function*
+The probability mass function is symmetrical and evenly distributed, where the histogram of the simulations seems to veer more towards the mean and with highest probabilities between 15 and 20. It is also skewed with more values slightly below the mean.
+
+## Five Challenges Faced
+
+1. I first struggled with understanding the difference between ppois and dpois, before I realized one gives an exact probability and the other involves a probability of that occurring more or less than depending on how you set the tail.
+2. Another major struggle was being able to use the function xlim(), as even with the suggestions of my peers I kept receiving the error that xlim is not a recognized function, which is very frustrating.
+3. I had to research how to properly use the echo function suggested to not show the code but still input the image in my file.
+4. Commenting on others code this time around was slightly difficult because I had to really analyze their code to come up with something, but I think that is because my peer's code was just really good!
+5. I find it difficult that certain themes use different layouts when applying them to the YAML, I really wish they made a universal way to apply themes.
